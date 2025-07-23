@@ -23,7 +23,20 @@ class Department  extends Persistable {
 	 * @var string
 	 * @since 1.0.0
 	 */
-	public static $db_table = "btz_employee_list_departments";
+	public static $db_table = null;
+	
+	/**
+	 * Get the full table name with WordPress prefix
+	 * @return string The full table name with WordPress prefix
+	 * @since 1.0.0
+	 */
+	private static function get_table_name() {
+		if (null === self::$db_table) {
+			global $wpdb;
+			self::$db_table = $wpdb->prefix . 'btz_employee_list_departments';
+		}
+		return self::$db_table;
+	}
 	/**
 	 * The database identifier for a department.
 	 * @var int
@@ -138,7 +151,7 @@ class Department  extends Persistable {
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		global $wpdb;
 
-		$table = self::$db_table;
+		$table = self::get_table_name();
 
 		$sql = "CREATE TABLE IF NOT EXISTS $table (
     		id INT NOT NULL AUTO_INCREMENT,
@@ -168,7 +181,7 @@ class Department  extends Persistable {
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		global $wpdb;
 
-		$sql = "SELECT * FROM " . self::$db_table . " ORDER BY department";
+		$sql = "SELECT * FROM " . self::get_table_name() . " ORDER BY department";
 		$results = $wpdb->get_results($sql, ARRAY_A);
 
 		$departments = [];
