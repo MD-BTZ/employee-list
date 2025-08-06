@@ -95,14 +95,16 @@ class Gallery {
 	}
 
 	public static function upload_images($first_name = "", $last_name = "") {
+		// Debug: Check if files were uploaded
 		if (empty($_FILES['btzc-el-employee-photo-upload'])) {
+			error_log('BTZ Employee List: No files uploaded in $_FILES');
 			return array();
 		}
 
 		$sub_dir = '/employee_images';
-		$upload_dir = wp_get_upload_dir();
+		$upload_dir = wp_upload_dir();
 		$upload_path = $upload_dir['basedir'] . '/' . $sub_dir;
-		$upload_url = $upload_dir['baseurl'] . '' . $sub_dir;
+		$upload_url = $upload_dir['baseurl'] . $sub_dir;
 
 		if (!file_exists($upload_path)) {
 			wp_mkdir_p($upload_path);
