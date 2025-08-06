@@ -58,7 +58,8 @@ class Department  extends Persistable {
 	 * @since 1.0.0
 	 */
 	protected function get_db_table_name() {
-		return self::$db_table;
+        // Make sure the static table name is initialised
+        return self::get_table_name();
 	}
 
 	/**
@@ -213,7 +214,7 @@ class Department  extends Persistable {
 	    require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 	    global $wpdb;
 
-	    $sql = "SELECT * FROM " . self::$db_table . " ORDER BY department";
+	    $sql = "SELECT * FROM " . self::get_table_name() . " ORDER BY department";
 	    $results = $wpdb->get_results($sql, ARRAY_A);
 
 	    wp_send_json_success($results ?: []);
@@ -241,7 +242,7 @@ class Department  extends Persistable {
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		global $wpdb;
 
-		$sql = "SELECT * FROM " . self::$db_table . " WHERE id = {$id}";
+		$sql = "SELECT * FROM " . self::get_table_name() . " WHERE id = {$id}";
 		$result = $wpdb->get_row($sql, ARRAY_A);
 		if ($result) {
 			return self::from_associative_array($result);
