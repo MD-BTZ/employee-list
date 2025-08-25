@@ -4,16 +4,16 @@
  *
  * @package     BTZ\Customized
  * @subpackage  EmployeeList
- * @author      M. Großhäuser
- * @copyright   2025 M. Großhäuser
+ * @author      D. Feix
+ * @copyright   2025 BTZ Köln
  * @license     GPL-2.0-or-later
  *
  * @wordpress-plugin
  * Plugin Name: BTZ Customized - Employee List
  * Description: A search- and filter list for the employees of BTZ Cologne
  * Version:     2.1.0
- * Author:      M. Großhäuser
- * Author URI:  https://www.github.com/markus-grosshaeuser
+ * Author:      D. Feix
+ * Author URI:  
  * License:     GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  */

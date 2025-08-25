@@ -292,10 +292,39 @@ class Department  extends Persistable {
 	 * @since 1.0.0
 	 */
 	public static function ajax_delete_department($id) {
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		global $wpdb;
-		$wpdb->delete(self::$db_table, array('id' => $id));
-        wp_send_json_success($id);
+		try {
+			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+			global $wpdb;
+
+			// Log the deletion attempt
+			error_log('Attempting to delete department with ID: ' . $id);
+			
+			// Get the table name
+			$table_name = self::get_table_name();
+			error_log('Using table name: ' . $table_name);
+			
+			// Check if the department exists before attempting to delete
+			$existing = $wpdb->get_row($wpdb->prepare("SELECT id FROM $table_name WHERE id = %d", $id));
+			if (!$existing) {
+				error_log('Department with ID ' . $id . ' not found');
+				return wp_send_json_error(array('message' => 'Department not found'), 404);
+			}
+			
+			// Perform the deletion
+			$result = $wpdb->delete($table_name, array('id' => $id), array('%d'));
+			
+			if ($result === false) {
+				error_log('Failed to delete department. Database error: ' . $wpdb->last_error);
+				return wp_send_json_error(array('message' => 'Database error'), 500);
+			}
+			
+			error_log('Successfully deleted department with ID: ' . $id);
+			return wp_send_json_success($id);
+			
+		} catch (Exception $e) {
+			error_log('Exception in ajax_delete_department: ' . $e->getMessage());
+			return wp_send_json_error(array('message' => 'An error occurred'), 500);
+		}
 	}
 
 

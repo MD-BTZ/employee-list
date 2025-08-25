@@ -76,7 +76,7 @@ export const backendDictionary = {
     },
     'Add new department': {
         en_US: 'Add new department',
-        de_DE: 'Neues Bereich hinzufügen'
+        de_DE: 'Neuen Bereich hinzufügen'
     },
     'Add new occupation': {
         en_US: 'Add new occupation',
