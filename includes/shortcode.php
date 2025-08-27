@@ -52,8 +52,13 @@ function shortcode($attributes) {
 
 	if (defined('BTZC_EL_BASE_URL')) {
 		wp_enqueue_style('btz_customized_employee_list_frontend_stylesheet', BTZC_EL_BASE_URL . 'public/css/public.css');
-		wp_enqueue_script('btz_employee_list_jquery', BTZC_EL_BASE_URL . 'public/js/jquery-3.7.1.min.js');
-		wp_enqueue_script_module('btz_customized_employee_list_frontend_javascript', BTZC_EL_BASE_URL . 'public/js/employee-list.js');
+		wp_enqueue_script(
+            'btz_customized_employee_list_frontend', 
+            BTZC_EL_BASE_URL . 'public/js/employee-list.js',
+            array('jquery'), // jQuery als Abhängigkeit
+            '1.0.0',
+            true // Im Footer laden
+        );
 	}
 
 	$attributes = shortcode_atts(array('department' => 0, 'occupation' => 0), $attributes, 'employee_list');
