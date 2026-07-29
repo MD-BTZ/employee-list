@@ -23,9 +23,13 @@ function self_service_form($attributes) {
 
     defined ('BTZC_EL_BASE_URL') or die ('');
     wp_enqueue_style('btz_customized_employee_list_frontend_stylesheet', BTZC_EL_BASE_URL . 'public/css/public.css');
-    wp_enqueue_script('btz_employee_list_jquery', BTZC_EL_BASE_URL . 'public/js/jquery-3.7.1.min.js');
-	wp_enqueue_script('btz_customized_employee_list_ssf_sign_on', BTZC_EL_BASE_URL . 'public/js/employee-ssf.js');
-
+    wp_enqueue_script(
+        'btz_customized_employee_list_ssf_sign_on', 
+        BTZC_EL_BASE_URL . 'public/js/employee-ssf.js',
+        array('jquery'), // jQuery als Abhängigkeit
+        '1.0.0',
+        true // Im Footer laden
+    );
 
     $attributes = shortcode_atts(array('init_id' => 1234), $attributes, 'employee_list');
 

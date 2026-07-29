@@ -30,7 +30,20 @@ class Employee_Department {
 	 * @var string The name of the database-table where all information regarding the
 	 *              employee-department-relationship are stored.
 	 */
-	public static $db_table = "btz_employee_list_employee_departments";
+	private static $db_table = null;
+	
+	/**
+	 * Get the full table name with WordPress prefix
+	 * @return string The full table name with WordPress prefix
+	 * @since 1.0.0
+	 */
+	private static function get_table_name() {
+		if (null === self::$db_table) {
+			global $wpdb;
+			self::$db_table = $wpdb->prefix . 'btz_employee_list_employee_departments';
+		}
+		return self::$db_table;
+	}
 
 	/**
 	 * The employee-id.
@@ -90,7 +103,7 @@ class Employee_Department {
 
 		$this->employee_id = $employee_id;
 
-		$sql = "SELECT * FROM " . self::$db_table . " WHERE employee_id = " . $employee_id;
+		$sql = $wpdb->prepare("SELECT * FROM " . self::get_table_name() . " WHERE employee_id = %d", $employee_id);
 		$department_ids = $wpdb->get_results($sql);
 
 		foreach ($department_ids as $department_id) {
@@ -116,10 +129,10 @@ class Employee_Department {
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		global $wpdb;
 
-		$table = self::$db_table;
+		$table = self::get_table_name();
 
-		$employee_table = Employee::$db_table;
-		$department_table = department::$db_table;
+		$employee_table = $wpdb->prefix . 'btz_employee_list_employees';
+		$department_table = $wpdb->prefix . 'btz_employee_list_departments';
 
 		$sql = "CREATE TABLE IF NOT EXISTS $table (
     		employee_id INT NOT NULL, -- Foreign Key
@@ -154,7 +167,7 @@ class Employee_Department {
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		global $wpdb;
 		$data = array('employee_id' => $employee_id, 'department_id' => $department_id);
-		$wpdb->insert(self::$db_table, $data);
+		$wpdb->insert(self::get_table_name(), $data);
 	}
 
 
@@ -178,7 +191,7 @@ class Employee_Department {
 	public static function clear_department_associations($employee_id) {
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		global $wpdb;
-		$wpdb->delete(self::$db_table, array('employee_id' => $employee_id), array('%d'));
+		$wpdb->delete(self::get_table_name(), array('employee_id' => $employee_id), array('%d'));
 	}
 
 

@@ -31,7 +31,20 @@ class Employee extends Persistable {
 	 * @since 1.0.0
 	 * @var string The name of the database-table where all information regarding an employee are stored.
 	 */
-	public static $db_table = "btz_employee_list_employees";
+	private static $db_table = null;
+	
+	/**
+	 * Get the full table name with WordPress prefix
+	 * @return string The full table name with WordPress prefix
+	 * @since 1.0.0
+	 */
+	private static function get_table_name() {
+		if (null === self::$db_table) {
+			global $wpdb;
+			self::$db_table = $wpdb->prefix . 'btz_employee_list_employees';
+		}
+		return self::$db_table;
+	}
 
 
 	/**
@@ -182,7 +195,7 @@ class Employee extends Persistable {
 	public function get_ssf_pin_hash() {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		global $wpdb;
-		$sql = "SELECT pin_hash FROM " . self::$db_table . " WHERE ID = '" . $this->id . "'";
+		$sql = $wpdb->prepare("SELECT pin_hash FROM " . self::get_table_name() . " WHERE ID = %d", $this->id);
 		$result = $wpdb->get_row($sql, ARRAY_A);
 		if (!$result) {
 			return null;
@@ -203,7 +216,7 @@ class Employee extends Persistable {
 	 * @return string The name of the database-table used to store the employee-data.
 	 */
 	protected function get_db_table_name() {
-		return self::$db_table;
+		return self::get_table_name();
 	}
 
 
@@ -308,7 +321,7 @@ class Employee extends Persistable {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		global $wpdb;
-		$table = self::$db_table;
+		$table = self::get_table_name();
 
 		$sql = "CREATE TABLE IF NOT EXISTS $table (
             id INT NOT NULL AUTO_INCREMENT,
@@ -350,7 +363,7 @@ class Employee extends Persistable {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		global $wpdb;
 
-		$sql = "SELECT * FROM " . self::$db_table . " ORDER BY last_name, first_name";
+		$sql = "SELECT * FROM " . self::get_table_name() . " ORDER BY last_name, first_name";
 		$results = $wpdb->get_results($sql, ARRAY_A);
 
 		if ($results) {
@@ -368,7 +381,14 @@ class Employee extends Persistable {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		global $wpdb;
 
-		$sql = "SELECT * FROM " . self::$db_table . " WHERE ID IN (SELECT employee_id FROM " . Employee_Department::$db_table . " WHERE department_id = '" . $id . "') ORDER BY last_name, first_name";
+		$department_table = $wpdb->prefix . 'btz_employee_list_employee_departments';
+		$sql = $wpdb->prepare(
+			"SELECT e.* FROM " . self::get_table_name() . " e 
+			INNER JOIN $department_table ed ON e.id = ed.employee_id 
+			WHERE ed.department_id = %d 
+			ORDER BY e.last_name, e.first_name", 
+			$id
+		);
 		$results = $wpdb->get_results($sql, ARRAY_A);
 		$employees = [];
 		if ($results) {
@@ -385,7 +405,14 @@ class Employee extends Persistable {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		global $wpdb;
 
-		$sql = "SELECT * FROM " . self::$db_table . " WHERE ID IN (SELECT employee_id FROM " . Employee_Occupation::$db_table . " WHERE occupation_id = '" . $id . "') ORDER BY last_name, first_name";
+		$occupation_table = $wpdb->prefix . 'btz_employee_list_employee_occupations';
+		$sql = $wpdb->prepare(
+			"SELECT e.* FROM " . self::get_table_name() . " e 
+			INNER JOIN $occupation_table eo ON e.id = eo.employee_id 
+			WHERE eo.occupation_id = %d 
+			ORDER BY e.last_name, e.first_name", 
+			$id
+		);
 		$results = $wpdb->get_results($sql, ARRAY_A);
 		$employees = [];
 		if ($results) {
@@ -430,7 +457,7 @@ class Employee extends Persistable {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		global $wpdb;
 
-		$sql = "SELECT * FROM " . self::$db_table . " WHERE ID = '" . $id . "'";
+		$sql = $wpdb->prepare("SELECT * FROM " . self::get_table_name() . " WHERE ID = %d", $id);
 		$employee = $wpdb->get_row($sql, ARRAY_A);
 		if ( $employee ) {
 			return self::from_associative_array($employee);
@@ -476,7 +503,11 @@ class Employee extends Persistable {
     public static function ajax_delete_employee($id) {
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		global $wpdb;
-		$wpdb->delete(self::$db_table, array('id' => $id));
+		$wpdb->delete(
+			self::get_table_name(), 
+			array('id' => $id), 
+			array('%d')
+		);
 		wp_send_json_success($id);
     }
 
@@ -521,7 +552,13 @@ class Employee extends Persistable {
 
 		$pin = rand(100000, 999999);
 		$hashed_pin = password_hash($pin, PASSWORD_DEFAULT);
-		$wpdb->update(self::$db_table, array('pin_hash' => $hashed_pin), array('id' => $this->id));
+		$wpdb->update(
+			self::get_table_name(), 
+			array('pin_hash' => $hashed_pin), 
+			array('id' => $this->id),
+			array('%s'),
+			array('%d')
+		);
 		return $pin;
 	}
 }

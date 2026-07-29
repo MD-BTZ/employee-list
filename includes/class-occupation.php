@@ -30,7 +30,20 @@ class Occupation extends Persistable {
 	 * @since 1.0.0
 	 * @var string The name of the database-table where all information regarding an occupation are stored.
 	 */
-	public static $db_table = "btz_employee_list_occupations";
+	private static $db_table = null;
+	
+	/**
+	 * Get the full table name with WordPress prefix
+	 * @return string The full table name with WordPress prefix
+	 * @since 1.0.0
+	 */
+	private static function get_table_name() {
+		if (null === self::$db_table) {
+			global $wpdb;
+			self::$db_table = $wpdb->prefix . 'btz_employee_list_occupations';
+		}
+		return self::$db_table;
+	}
 
 	/**
 	 * The occupation-id.
@@ -140,7 +153,7 @@ class Occupation extends Persistable {
 	 * @return string The name of the database-table used to store the occupation-data.
 	 */
 	protected function get_db_table_name() {
-		return self::$db_table;
+		return self::get_table_name();
 	}
 
 
@@ -226,7 +239,7 @@ class Occupation extends Persistable {
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		global $wpdb;
 
-		$table = self::$db_table;
+		$table = self::get_table_name();
 
 		$sql = "CREATE TABLE IF NOT EXISTS $table (
     		id INT NOT NULL AUTO_INCREMENT,
@@ -250,13 +263,14 @@ class Occupation extends Persistable {
 	 * @see wp-admin/includes/upgrade.php
 	 * @global object $wpdb Object for interaction with the WordPress-Database.
 	 *
-	 * @return array|null An array with all known occupations; empty, if there are no occupations in the database.
+	 * @return array An array with all known occupations; empty, if there are no occupations in the database.
 	 */
 	public static function get_all() {
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		global $wpdb;
 
-		$sql = "SELECT * FROM " . self::$db_table . " ORDER BY occupation";
+		$table_name = self::get_table_name();
+		$sql = "SELECT * FROM {$table_name} ORDER BY occupation";
 		$results = $wpdb->get_results($sql, ARRAY_A);
 		$objects = [];
 		if ($results) {
@@ -269,12 +283,13 @@ class Occupation extends Persistable {
 
 
     public static function ajax_get_all() {
-	    require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-	    global $wpdb;
+        require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+        global $wpdb;
 
-	    $sql = "SELECT * FROM " . self::$db_table . " ORDER BY occupation";
-	    $results = $wpdb->get_results($sql, ARRAY_A);
-	    wp_send_json_success($results ?: []);
+        $table_name = self::get_table_name();
+        $sql = "SELECT * FROM {$table_name} ORDER BY occupation";
+        $results = $wpdb->get_results($sql, ARRAY_A);
+        wp_send_json_success($results ?: []);
     }
 
 	/**
@@ -295,8 +310,9 @@ class Occupation extends Persistable {
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		global $wpdb;
 
-		$sql = "SELECT * FROM " . self::$db_table . " WHERE id = " . $id;
-		$result = $wpdb->get_row($sql, ARRAY_A);
+		$table_name = self::get_table_name();
+		$sql = "SELECT * FROM {$table_name} WHERE id = %d";
+		$result = $wpdb->get_row($wpdb->prepare($sql, $id), ARRAY_A);
 		if ($result) {
 			return self::from_associative_array($result);
 		}
@@ -331,7 +347,11 @@ class Occupation extends Persistable {
 	public static function ajax_delete_occupation($id) {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		global $wpdb;
-		$wpdb->delete(self::$db_table, array('id' => $id));
+		$wpdb->delete(
+			self::get_table_name(), 
+			array('id' => $id),
+			array('%d')
+		);
         wp_send_json_success($id);
 	}
 

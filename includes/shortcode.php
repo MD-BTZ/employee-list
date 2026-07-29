@@ -52,8 +52,13 @@ function shortcode($attributes) {
 
 	if (defined('BTZC_EL_BASE_URL')) {
 		wp_enqueue_style('btz_customized_employee_list_frontend_stylesheet', BTZC_EL_BASE_URL . 'public/css/public.css');
-		wp_enqueue_script('btz_employee_list_jquery', BTZC_EL_BASE_URL . 'public/js/jquery-3.7.1.min.js');
-		wp_enqueue_script_module('btz_customized_employee_list_frontend_javascript', BTZC_EL_BASE_URL . 'public/js/employee-list.js');
+		wp_enqueue_script(
+            'btz_customized_employee_list_frontend', 
+            BTZC_EL_BASE_URL . 'public/js/employee-list.js',
+            array('jquery'), // jQuery als Abhängigkeit
+            '1.0.0',
+            true // Im Footer laden
+        );
 	}
 
 	$attributes = shortcode_atts(array('department' => 0, 'occupation' => 0), $attributes, 'employee_list');
@@ -73,6 +78,7 @@ function shortcode($attributes) {
 
 	$output  = '<div id="btzc-el-frontend-container">';
 	$output .= '  <div id="btzc-el-frontend-employee-list">';
+	
 	$output .= '    <div id="btzc-el-frontend-employee-list-head">';
 	$output .= $department_id == 0 ? get_department_selection_element($departments) : get_department_selection_element($departments, false);
 	$output .= $occupation_id == 0 ? get_occupation_selection_element($occupations) : get_occupation_selection_element($occupations, false);
@@ -83,6 +89,7 @@ function shortcode($attributes) {
 		$output .= '      <input id="btzc-el-frontend-search-field" class="btzc-el-frontend-search-field-reduced" type="text" placeholder=' . translate('search_placeholder'). '>';
 	}
 	$output .= '    </div>';
+	
 	$output .= '    <div id="btzc-el-frontend-employee-list-body">';
 	foreach ($employees as $employee) {
 		$output .=  get_employee_tile($employee);
@@ -165,41 +172,45 @@ function get_employee_tile($employee) {
 	$email_address = $employee->get_email_address() === translate('EMAIL@EXAMPLE.COM') ? '' : $employee->get_email_address();
 	$additional_information = $employee->get_information() === translate('[ADDITIONAL INFORMATION]') || strtolower($employee->get_information()) === 'null'? '' : $employee->get_information();
 
+	// 12.06.2026, M.Picker: I have removed the string indentation and indented the calls instead to prevent Elementor from turning the leading spaces into paragraphs.
 	$output  = '<div class="btzc-el-frontend-employee-tile" data-firstname="' . $first_name . '" data-lastname="' . $last_name . '" data-departments="' . $department_list . '" data-occupations="' . $occupation_list . '">';
-	$output .= '  <div class="btz-el-frontend-employee-tile-header">';
-	$output .= '  </div>';
-	$output .= '  <div class="btzc-el-frontend-employee-tile-body">';
-	$output .= '    <div class="btzc-el-frontend-employee-tile-body-image-container">';
-	$output .= '      <img src="' . $image_url . '">';
-	$output .= '    </div>';
-	$output .= '    <div class="btzc-el-frontend-employee-tile-body-data-container">';
-	$output .= '      <div class="btzc-el-frontend-employee-tile-name-row">';
-	$output .= '        <p>' . $first_name . '<strong> ' . $last_name . '</strong></p>';
-	$output .= '      </div>';
-	$output .= '      <div class="btzc-el-frontend-employee-tile-departments-section">';
-	$output .=          get_employee_departments($employee);
-	$output .= '      </div>';
-	$output .= '      <div class="btzc-el-frontend-employee-tile-occupations-section">';
-	$output .=          get_employee_occupations($employee);
-	$output .= '      </div>';
-	$output .= '      <div class="btzc-el-frontend-employee-tile-phone-and-room-row">';
-	$output .= '        <p class="btzc-el-employee-frontend-tile-phone">Tel.: ' . $phone_number . '</p>';
-	$output .= '        <p class="btzc-el-employee-frontend-tile-room">Raum: ' . $room_number . '</p>';
-	$output .= '      </div>';
-	$output .= '      <div class="btzc-el-frontend-employee-tile-email-row">';
-	if ($email_address === '') {
-		$output .= translate('no_email');
-	} else {
-		$output .= '<a href="mailto:' . $email_address . '">' . $email_address . '</a>';
-	}
-	$output .= '      </div>';
-	$output .= '    </div>';
-	$output .= '  </div>';
-	if ($additional_information) {
-		$output .= '  <div class="btzc-el-frontend-employee-tile-footer">';
-		$output .= '    <div class="btzc-el-frontend-additional-information">' . $additional_information . '</div>';
-		$output .= '  </div>';
-	}
+		$output .= '<div class="btz-el-frontend-employee-tile-header">';
+		$output .= '</div>';
+		$output .= '<div class="btzc-el-frontend-employee-tile-body">';
+			$output .= '<div class="btzc-el-frontend-employee-tile-body-image-container">';
+				$output .= '<img src="' . $image_url . '">';
+			$output .= '</div>';
+			$output .= '<div class="btzc-el-frontend-employee-tile-body-data-container">';
+				$output .= '<div class="btzc-el-frontend-employee-tile-name-row">';
+					$output .= '<p>' . $first_name . '<strong> ' . $last_name . '</strong></p>';
+					$output .= '<p></p>';
+				$output .= '</div>';
+				$output .= '<div class="btzc-el-frontend-employee-tile-departments-section">';
+					$output .=  get_employee_departments($employee);
+					$output .= '<p></p>';
+				$output .= '</div>';
+				$output .= '<div class="btzc-el-frontend-employee-tile-occupations-section">';
+					$output .=  get_employee_occupations($employee);
+					$output .= '<p></p>';
+				$output .= '</div>';
+				$output .= '<div class="btzc-el-frontend-employee-tile-phone-and-room-row">';
+					$output .= '<p class="btzc-el-employee-frontend-tile-phone">Tel.: ' . $phone_number . '</p>';
+					$output .= '<p class="btzc-el-employee-frontend-tile-room">Raum: ' . $room_number . '</p>';
+				$output .= '</div>';
+				$output .= '<div class="btzc-el-frontend-employee-tile-email-row">';
+					if ($email_address === '') {
+						$output .= translate('no_email');
+					} else {
+						$output .= '<a href="mailto:' . $email_address . '">' . $email_address . '</a>';
+					}
+				$output .= '</div>';
+			$output .= '</div>';
+		$output .= '</div>';
+		if ($additional_information) {
+			$output .= '<div class="btzc-el-frontend-employee-tile-footer">';
+				$output .= '<div class="btzc-el-frontend-additional-information">' . $additional_information . '</div>';
+			$output .= '</div>';
+		}
 	$output .= '</div>';
 	return $output;
 }

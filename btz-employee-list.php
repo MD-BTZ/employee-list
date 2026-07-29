@@ -16,6 +16,10 @@
  * Author URI:  https://www.github.com/markus-grosshaeuser
  * License:     GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * 
+ * Original work Copyright (C) 2025 M. Großhäuser
+ * Modifications Copyright (C) 2025-2026 BTZ Köln
+ * Contributors: D. Feix, Marco Picker
  */
 namespace BTZ\Customized\EmployeeList;
 
@@ -155,13 +159,19 @@ register_activation_hook( __FILE__, 'BTZ\Customized\EmployeeList\create_tables' 
 function create_tables() {
 	global $wpdb;
 	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-	$sql = "CREATE TABLE IF NOT EXISTS btz_employee_list_settings (
-    	setting VARCHAR(255) NOT NULL PRIMARY KEY ,
+	
+	$settings_table = $wpdb->prefix . 'btz_employee_list_settings';
+	$sql = "CREATE TABLE IF NOT EXISTS {$settings_table} (
+    	setting VARCHAR(255) NOT NULL PRIMARY KEY,
     	value VARCHAR(255) NOT NULL
     ) {$wpdb->get_charset_collate()};";
 	dbDelta($sql);
-	$sql = "INSERT IGNORE INTO btz_employee_list_settings (setting, value) VALUES ('company_name', 'Company Name');";
-	$wpdb->query($sql);
+	
+	$wpdb->query($wpdb->prepare(
+		"INSERT IGNORE INTO {$settings_table} (setting, value) VALUES (%s, %s)",
+		'company_name',
+		'Company Name'
+	));
 
     Employee::create_db_table();
     Department::create_db_table();
@@ -307,8 +317,11 @@ function get_system_language() {
 add_action('wp_ajax_btzc_el_get_company_name', 'BTZ\Customized\EmployeeList\get_company_name');
 function get_company_name() {
 	global $wpdb;
-	$sql = "SELECT value FROM btz_employee_list_settings WHERE setting = 'company_name';";
-	$result = $wpdb->get_var($sql);
+	$settings_table = $wpdb->prefix . 'btz_employee_list_settings';
+	$result = $wpdb->get_var($wpdb->prepare(
+		"SELECT value FROM {$settings_table} WHERE setting = %s",
+		'company_name'
+	));
 	wp_send_json_success($result);
 }
 
@@ -318,9 +331,14 @@ function get_company_name() {
 add_action('wp_ajax_btzc_el_update_company_name', 'BTZ\Customized\EmployeeList\update_company_name');
 function update_company_name() {
 	global $wpdb;
+	$settings_table = $wpdb->prefix . 'btz_employee_list_settings';
 	$new_company_name = sanitize_text_field($_POST['company_name']);
-	$sql = "UPDATE btz_employee_list_settings SET value = '{$new_company_name}' WHERE setting = 'company_name';";
-	$wpdb->query($sql);
+	$wpdb->query($wpdb->prepare(
+		"UPDATE {$settings_table} SET value = %s WHERE setting = %s",
+		$new_company_name,
+		'company_name'
+	));
+	wp_send_json_success();
 }
 
 
