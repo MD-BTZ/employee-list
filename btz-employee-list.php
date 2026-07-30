@@ -16,6 +16,8 @@
  * Author URI:  https://www.github.com/markus-grosshaeuser
  * License:     GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * GitHub Plugin URI: https://github.com/MD-BTZ/btz-wiki-plugin-employee-list
+ * Primary Branch: main
  * 
  * Original work Copyright (C) 2025 M. Großhäuser
  * Modifications Copyright (C) 2025-2026 BTZ Köln
